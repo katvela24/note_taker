@@ -15,6 +15,7 @@ const PORT = 3001;
 app.use(express.urlencoded({ extended: true }));
 
 app.use(express.json());
+
 // Static middleware pointing to the public folder
 app.use(express.static("public"));
 const __filename = fileURLToPath(import.meta.url); // get the resolved path to the file
@@ -24,13 +25,17 @@ const __dirname = path.dirname(__filename); // get the name of the directory
 //   res.sendFile(path.join(__dirname, "public/sendFile.html"))
 // );
 
+
 // An import assertion in a static import
 import db from "./db/db.json" assert { type: "json" };
 console.log("test", db);
 
-app.get("/notes", (req, res) =>
-  res.sendFile(path.join(__dirname, "public/notes.html"))
-);
+
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "public/index.html"));
+})
+
+app.get("/notes", (req, res) => res.sendFile(path.join(__dirname, "public/notes.html")));
 
 app.get("/api/notes", async function (req, res) {
   const notes = await db;
@@ -46,6 +51,28 @@ app.post("/api/notes", async function (req, res) {
     text: req.body.text
 
   }
+
+  const path = './db/db.json';
+  fs.readFile(path, (error, data) => {
+    if (error) {
+      console.log(error);
+      return;
+    }
+    const parsedData = JSON.parse(data);
+    
+    parsedData.push(newNote);
+    console.log("parsed data", parsedData);
+
+    fs.writeFile(path, JSON.stringify(parsedData, null, 2), (err) => {
+      if (err) {
+        console.log('Failed to write updated data to file');
+        return;
+      }
+      console.log('Updated file successfully');
+    });
+  });
+  // console.log("new note", newNote);
+
   // TODO: This is where I would add the data to the file
   
   // return res.json(notes)
