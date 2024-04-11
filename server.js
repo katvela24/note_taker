@@ -1,10 +1,10 @@
 // Import Express.js
-import express from 'express';
-import fs from 'fs';
+const express = require('express');
+const fs = require ('fs');
 
 // Import built-in Node.js package 'path' to resolve path of files that are located on the server
-import path from 'path';
-import { fileURLToPath } from 'url';
+// import path from 'path';
+// import { fileURLToPath } from 'url';
 
 // Initialize an instance of Express.js
 const app = express();
@@ -18,8 +18,8 @@ app.use(express.json());
 
 // Static middleware pointing to the public folder
 app.use(express.static("public"));
-const __filename = fileURLToPath(import.meta.url); // get the resolved path to the file
-const __dirname = path.dirname(__filename); // get the name of the directory
+// const __filename = fileURLToPath(import.meta.url); // get the resolved path to the file
+// const __dirname = path.dirname(__filename); // get the name of the directory
 
 // app.get("/send", (req, res) =>
 //   res.sendFile(path.join(__dirname, "public/sendFile.html"))
@@ -27,32 +27,43 @@ const __dirname = path.dirname(__filename); // get the name of the directory
 
 
 // An import assertion in a static import
-import db from "./db/db.json" assert { type: "json" };
-console.log("test", db);
+// import db from "./db/db.json" assert { type: "json" };
+// console.log("test", db);
 
 
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "public/index.html"));
+    res.sendFile(__dirname + "/public/index.html");
+  // res.sendFile(path.join(__dirname, "public/index.html"));
 })
 
-app.get("/notes", (req, res) => res.sendFile(path.join(__dirname, "public/notes.html")));
+app.get("/notes", (req, res) => {
+  res.sendFile(__dirname + "/public/notes.html");
 
-app.get("/api/notes", async function (req, res) {
-  const notes = await db;
-  return res.json(notes)
+});
+
+const path = './db/db.json';
+app.get("/api/notes", function (req, res) {
+  fs.readFile(path, function (err,data){
+    if (err) {
+      return console.log(err)
+    }
+  
+    res.json (JSON.parse (data))
+  })
 }
 );
 
 app.post("/api/notes", async function (req, res) {
-  const notes = await db;
+ 
   let newNote = {
 
     title: req.body.title ,
     text: req.body.text
 
   }
+  console.log(req.body, newNote)
 
-  const path = './db/db.json';
+  
   fs.readFile(path, (error, data) => {
     if (error) {
       console.log(error);
@@ -69,6 +80,7 @@ app.post("/api/notes", async function (req, res) {
         return;
       }
       console.log('Updated file successfully');
+      res.end()
     });
   });
   // console.log("new note", newNote);
